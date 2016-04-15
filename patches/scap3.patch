@@ -1,0 +1,59 @@
+From af3152e2fa39698dc01ef0d0a907751cb26b97c0 Mon Sep 17 00:00:00 2001
+From: Marko Obrovac <mobrovac@wikimedia.org>
+Date: Fri, 15 Apr 2016 15:27:09 +0200
+Subject: [PATCH] Add Scap3 configuration
+
+Bug: T129143
+Change-Id: I4c686ce3a2234dc4cdbc6699e24ca91f65643fc2
+---
+ scap/betacluster |  1 +
+ scap/scap.cfg    | 17 +++++++++++++++++
+ scap/targets     |  4 ++++
+ 3 files changed, 22 insertions(+)
+ create mode 100644 scap/betacluster
+ create mode 100644 scap/scap.cfg
+ create mode 100644 scap/targets
+
+diff --git a/scap/betacluster b/scap/betacluster
+new file mode 100644
+index 0000000..db9c5ab
+--- /dev/null
++++ b/scap/betacluster
+@@ -0,0 +1 @@
++deployment-zotero01.deployment-prep.eqiad.wmflabs
+diff --git a/scap/scap.cfg b/scap/scap.cfg
+new file mode 100644
+index 0000000..b7a055a
+--- /dev/null
++++ b/scap/scap.cfg
+@@ -0,0 +1,17 @@
++[global]
++git_repo: zotero/translators
++git_deploy_dir: /srv/deployment
++git_repo_user: deploy-service
++ssh_user: deploy-service
++dsh_targets: targets
++git_submodules: False
++service_name: zotero
++service_port: 1969
++lock_file: /tmp/scap.zotero.lock
++
++[wmnet]
++git_server: tin.eqiad.wmnet
++
++[deployment-prep.eqiad.wmflabs]
++git_server: deployment-tin.deployment-prep.eqiad.wmnet
++dsh_targets: betacluster
+diff --git a/scap/targets b/scap/targets
+new file mode 100644
+index 0000000..19800c7
+--- /dev/null
++++ b/scap/targets
+@@ -0,0 +1,4 @@
++sca1001.eqiad.wmnet
++sca1002.eqiad.wmnet
++sca2001.codfw.wmnet
++sca2002.codfw.wmnet
+-- 
+1.9.1
+
