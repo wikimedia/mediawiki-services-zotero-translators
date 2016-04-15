@@ -1,0 +1,121 @@
+From d4d589d83ac45dccc2b10463e9f12608bbf23fe6 Mon Sep 17 00:00:00 2001
+From: Marielle Volz <marielle.volz@gmail.com>
+Date: Fri, 15 Apr 2016 10:55:30 +0100
+Subject: [PATCH] Enable several translators, add url to Google Books
+
+Enable JSTOR, Primo, ScienceDirect, Wiley Online,
+and Google Books translators.
+
+Add regex for 12 character google books ID,
+and add url to citation based on that ID.
+
+Bug: T106802
+Bug: T108826
+Bug: T109198
+Bug: T97042
+Bug: T94169
+Bug: T107322
+Change-Id: I1c9a7b9bc677e8113fc5914384e584abea644222
+---
+ Google Books.js         | 15 ++++++++++-----
+ JSTOR.js                |  2 +-
+ Primo.js                |  2 +-
+ ScienceDirect.js        |  2 +-
+ Wiley Online Library.js |  2 +-
+ 5 files changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/Google Books.js b/Google Books.js
+index 22e204b..503d06c 100644
+--- a/Google Books.js	
++++ b/Google Books.js	
+@@ -8,7 +8,7 @@
+ 	"priority": 100,
+ 	"inRepository": true,
+ 	"translatorType": 4,
+-	"browserSupport": "gcsb",
++	"browserSupport": "gcsbv",
+ 	"lastUpdated": "2015-09-24 15:24:15"
+ }
+ 
+@@ -116,17 +116,22 @@ function parseXML(text) {
+ 	}
+ 	
+ 	var ISBN;
+-	const ISBN10Re = /(ISBN:)(\w{10})$/;
+-	const ISBN13Re = /(ISBN:)(\w{13})$/;
++	const ISBN10Re = /(?:ISBN:)(\w{10})$/;
++	const ISBN13Re = /(?:ISBN:)(\w{13})$/;
++	const booksIDRe = /^(\w{12})$/;
+ 	var identifiers = ZU.xpath(xml, "dc:identifier", ns);
+ 	for (var i in identifiers) {
+ 		var ISBN10Match = ISBN10Re.exec(identifiers[i].textContent);
+ 		var ISBN13Match = ISBN13Re.exec(identifiers[i].textContent);
++		var booksIDMatch = booksIDRe.exec(identifiers[i].textContent);
+ 		if (ISBN10Match != null) {
+-			ISBN = ISBN10Match[2];
++			ISBN = ISBN10Match[1];
+ 		}
+ 		if (ISBN13Match != null) {
+-			ISBN = ISBN13Match[2];
++			ISBN = ISBN13Match[1];
++		}
++		if (booksIDMatch != null) {
++			newItem.url = 'https://books.google.com/books?id=' + booksIDMatch[1];
+ 		}
+ 	}
+ 	newItem.ISBN = ISBN;
+diff --git a/JSTOR.js b/JSTOR.js
+index b16b9bc..1301a57 100644
+--- a/JSTOR.js
++++ b/JSTOR.js
+@@ -8,7 +8,7 @@
+ 	"priority": 100,
+ 	"inRepository": true,
+ 	"translatorType": 4,
+-	"browserSupport": "gcsib",
++	"browserSupport": "gcsibv",
+ 	"lastUpdated": "2016-01-03 17:28:36"
+ }
+ 
+diff --git a/Primo.js b/Primo.js
+index 827a985..d328da4 100644
+--- a/Primo.js
++++ b/Primo.js
+@@ -8,7 +8,7 @@
+ 	"priority": 100,
+ 	"inRepository": true,
+ 	"translatorType": 4,
+-	"browserSupport": "gcsb",
++	"browserSupport": "gcsbv",
+ 	"lastUpdated": "2016-04-12 03:30:36"
+ }
+ 
+diff --git a/ScienceDirect.js b/ScienceDirect.js
+index 2b7a3e9..606fdad 100644
+--- a/ScienceDirect.js
++++ b/ScienceDirect.js
+@@ -8,7 +8,7 @@
+ 	"priority": 100,
+ 	"inRepository": true,
+ 	"translatorType": 4,
+-	"browserSupport": "gcsib",
++	"browserSupport": "gcsibv",
+ 	"lastUpdated": "2015-12-08 05:47:08"
+ }
+ 
+diff --git a/Wiley Online Library.js b/Wiley Online Library.js
+index 2e4d8dc..0d92b6f 100644
+--- a/Wiley Online Library.js	
++++ b/Wiley Online Library.js	
+@@ -8,7 +8,7 @@
+ 	"priority": 100,
+ 	"inRepository": true,
+ 	"translatorType": 4,
+-	"browserSupport": "gcsib",
++	"browserSupport": "gcsibv",
+ 	"lastUpdated": "2015-06-04 16:47:36"
+ }
+ 
+-- 
+1.9.1
+
