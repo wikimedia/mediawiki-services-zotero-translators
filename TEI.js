@@ -276,7 +276,7 @@ function generateItem(item, teiDoc) {
 		}
 	}
 
-	
+
 	// add name of conference
 	if (item.conferenceName) {
 		var conferenceName = teiDoc.createElementNS(ns.tei, "title");

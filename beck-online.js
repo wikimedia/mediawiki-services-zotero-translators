@@ -959,8 +959,6 @@ var testCases = [
 						"note": "Additional Metadata: <h3>Beschreibung</h3><p>Indizierung eines pornographischen Romans (\"Josefine Mutzenbacher\") zur Fussnote †</p><h3>Parallelfundstellen</h3><p>BeckRS 9998, 165476 ; BeckRS 9998, 169076 ; NStZ 1991, 188 ; BeckRS 9998, 170068 (Ls.) ; FHOeffR 42 Nr. 13711 (Ls.... ; FHOeffR 42 Nr. 13713 (Ls.... ; FHOeffR 42 Nr. 6327 (Ls.) ; FHOeffR 42 Nr. 7072 (Ls.) ; LSK 1991, 230089 (Ls.) ; NVwZ 1991, 663 (Ls.) ; AfP 1991, 379 ; AfP 1991, 384 ; Bespr.: , JZ 1991, 470 ; BVerfGE 83, 130 ; DVBl 1991, 261 ; EuGRZ 1991, 33 ; JZ 1991, 465</p><h3>Normen</h3><p>GG Art. GG Artikel 1 GG Artikel 1 Absatz I, GG Artikel 2 GG Artikel 2 Absatz I, GG Artikel 5 GG Artikel 5 Absatz III 1, GG Artikel 6 GG Artikel 6 Absatz II, GG Artikel 19 GG Artikel 19 Absatz I 2, GG Artikel 19 Absatz IV, GG Artikel 20 GG Artikel 20 Absatz III, GG Artikel 103 GG Artikel 103 Absatz I; GjS §§ 1, 6, 9 II</p><h3>Zeitschrift Titel</h3><p>Neue Juristische Wochenschrift</p>"
 					}
 				],
-				"tags": [],
-				"notes": [],
 				"seeAlso": []
 			}
 		]
