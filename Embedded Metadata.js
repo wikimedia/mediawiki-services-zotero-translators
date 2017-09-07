@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2017-04-04 04:24:04"
+	"lastUpdated": "2017-08-26 11:30:00"
 }
 
 /*
@@ -144,7 +144,7 @@ function getPrefixes(doc) {
 			}
 		}
 	}
-	
+
 	//also look in html and head elements
 	var prefixes = (doc.documentElement.getAttribute('prefix') || '')
 		+ (doc.head.getAttribute('prefix') || '');
@@ -196,7 +196,7 @@ function processFields(doc, item, fieldMap, strict) {
 function completeItem(doc, newItem) {
 	// Strip off potential junk from RDF
 	newItem.seeAlso = [];
-	
+
 	addHighwireMetadata(doc, newItem);
 	addOtherMetadata(doc, newItem);
 	addLowQualityMetadata(doc, newItem);
@@ -205,7 +205,7 @@ function completeItem(doc, newItem) {
 	if(CUSTOM_FIELD_MAPPINGS) {
 		processFields(doc, newItem, CUSTOM_FIELD_MAPPINGS, true);
 	}
-	
+
 	newItem.complete();
 }
 
@@ -246,6 +246,7 @@ function init(doc, url, callback, forceLoadRDF) {
 		if (!tags) tags = metaTag.getAttribute("property");
 		var value = metaTag.getAttribute("content");
 		if(!tags || !value) continue;
+		//Z.debug(tags + " -> " + value);
 
 		tags = tags.split(/\s+/);
 		for(var j=0, m=tags.length; j<m; j++) {
@@ -258,14 +259,13 @@ function init(doc, url, callback, forceLoadRDF) {
 
 			if(_prefixes[prefix]) {
 				var prop = tag.substr(delimIndex+1, 1).toLowerCase()+tag.substr(delimIndex+2);
-
 				//bib and bibo types are special, they use rdf:type to define type
 				var specialNS = [_prefixes['bib'], _prefixes['bibo']];
 				if(prop == 'type' && specialNS.indexOf(_prefixes[prefix]) != -1) {
 					value = _prefixes[prefix] + value;
 					prefix = 'rdf';
 				}
-				
+
 				// This debug is for seeing what is being sent to RDF
 				//Zotero.debug(_prefixes[prefix]+prop +"=>"+value);
 				statements.push([url, _prefixes[prefix]+prop, value]);
@@ -274,7 +274,7 @@ function init(doc, url, callback, forceLoadRDF) {
 				if(lcValue.indexOf('blogger') != -1
 					|| lcValue.indexOf('wordpress') != -1
 					|| lcValue.indexOf('wooframework') != -1
-				) {	
+				) {
 					generatorType = 'blogPost';
 				}
 			} else {
@@ -307,7 +307,7 @@ function init(doc, url, callback, forceLoadRDF) {
 			}
 		}
 	}
-	
+
 	if(statements.length || forceLoadRDF) {
 		// load RDF translator, so that we don't need to replicate import code
 		var translator = Zotero.loadTranslator("import");
@@ -316,13 +316,12 @@ function init(doc, url, callback, forceLoadRDF) {
 			_haveItem = true;
 			completeItem(doc, newItem);
 		});
-		
+
 		translator.getTranslatorObject(function(rdf) {
 			for(var i=0; i<statements.length; i++) {
-				var statement = statements[i];			
+				var statement = statements[i];
 				rdf.Zotero.RDF.addStatement(statement[0], statement[1], statement[2], true);
 			}
-
 			var nodes = rdf.getNodes(true);
 			rdf.defaultUnknownType = hwType || hwTypeGuess || generatorType ||
 				//if we have RDF data, then default to webpage
@@ -461,15 +460,16 @@ function addHighwireMetadata(doc, newItem) {
 		newItem.pages = firstpage +
 			( ( lastpage && ( lastpage = lastpage.trim() ) )?'-' + lastpage : '' );
 	}
-	
+
 	//fall back to some other date options
 	if(!newItem.date) {
 		newItem.date = getContentText(doc, 'citation_online_date')
 			|| getContentText(doc, 'citation_year');
 	}
-	
+
 	//prefer ISSN over eISSN
 	var issn = getContentText(doc, 'citation_issn') ||
+			getContentText(doc, 'citation_ISSN') ||
 			getContentText(doc, 'citation_eIssn');
 
 	if(issn) newItem.ISSN = issn;
@@ -492,16 +492,16 @@ function addHighwireMetadata(doc, newItem) {
 
 	//add snapshot
 	newItem.attachments.push({document:doc, title:"Snapshot"});
-	
+
 	//store PMID in Extra and as a link attachment
 	//e.g. http://www.sciencemag.org/content/332/6032/977.full
 	var PMID = getContentText(doc, 'citation_pmid');
 	if(PMID) {
 		if(newItem.extra) newItem.extra += '\n';
 		else newItem.extra = '';
-		
+
 		newItem.extra += 'PMID: ' + PMID;
-		
+
 		newItem.attachments.push({
 			title: "PubMed entry",
 			url: "http://www.ncbi.nlm.nih.gov/pubmed/" + PMID,
@@ -524,16 +524,16 @@ function addOtherMetadata(doc, newItem) {
 		try {
 			var parsely = JSON.parse(parselyJSON);
 		} catch(e) {}
-		
+
 		if(parsely) {
 			if(!newItem.title && parsely.title) {
 				newItem.title = parsely.title;
 			}
-			
+
 			if(!newItem.url && parsely.url) {
 				newItem.url = parsely.url;
 			}
-			
+
 			if(!newItem.date && parsely.pub_date) {
 				var date = new Date(parsely.pub_date);
 				if(!isNaN(date.getUTCFullYear())) {
@@ -544,11 +544,11 @@ function addOtherMetadata(doc, newItem) {
 					}, true);
 				}
 			}
-			
+
 			if(!newItem.creators.length && parsely.author) {
 				newItem.creators.push(ZU.cleanAuthor(''+parsely.author, 'author'));
 			}
-			
+
 			if(!newItem.tags.length && parsely.tags && parsely.tags.length) {
 				newItem.tags = parsely.tags;
 			}
@@ -563,7 +563,7 @@ function addLowQualityMetadata(doc, newItem) {
 		Z.debug("Title was not found in meta tags. Using document title as title");
 		newItem.title = doc.title;
 	}
-	
+
 	if(newItem.title) {
 		newItem.title = newItem.title.replace(/\s+/g, ' '); //make sure all spaces are \u0020
 		if(newItem.publicationTitle) {
@@ -594,16 +594,15 @@ function addLowQualityMetadata(doc, newItem) {
 	}
 	//fall back to "keywords"
 	if(!newItem.tags.length) {
-		 newItem.tags = ZU.xpath(doc, '//x:meta[@name="keywords"]/@content', namespaces)
-		 	.map(function(t) { return t.textContent; });
+		 newItem.tags = ZU.xpathText(doc, '//x:meta[@name="keywords"]/@content', namespaces);
 	}
-	
+
 	//We can try getting abstract from 'description'
 	if(!newItem.abstractNote) {
 		newItem.abstractNote = ZU.trimInternal(
 			ZU.xpathText(doc, '//x:meta[@name="description"]/@content', namespaces) || '');
 	}
-	
+
 	if(!newItem.url) {
 		newItem.url = ZU.xpathText(doc, '//head/link[@rel="canonical"]/@href');
 	}
@@ -611,9 +610,9 @@ function addLowQualityMetadata(doc, newItem) {
 		newItem.url = doc.location.href;
 	}
 
-	
+
 	newItem.libraryCatalog = doc.location.host;
-	
+
 	// add access date
 	newItem.accessDate = 'CURRENT_TIMESTAMP';
 }
@@ -641,11 +640,11 @@ function getAuthorFromByline(doc, newItem) {
 		Z.debug("Found " + byline.length + " elements with '" + bylineClasses[i] + "' class");
 		for(var j=0; j<byline.length; j++) {
 			if (!byline[j].textContent.trim()) continue;
-			
+
 			bylines.push(byline[j]);
 		}
 	}
-	
+
 	var actualByline;
 	if(!bylines.length) {
 		Z.debug("No byline found.");
@@ -656,12 +655,12 @@ function getAuthorFromByline(doc, newItem) {
 		Z.debug(bylines.length + " bylines found:");
 		Z.debug(bylines.map(function(n) { return ZU.trimInternal(n.textContent)}).join('\n'));
 		Z.debug("Locating the one closest to title.");
-		
+
 		//find the closest one to the title (in DOM)
 		actualByline = false;
 		var parentLevel = 1;
 		var skipList = [];
-		
+
 		// Wrap title in quotes so we can use it in the xpath
 		var xpathTitle = newItem.title.toLowerCase();
 		if(xpathTitle.indexOf('"') != -1) {
@@ -676,7 +675,7 @@ function getAuthorFromByline(doc, newItem) {
 		} else {
 			xpathTitle = '"' + xpathTitle + '"';
 		}
-		
+
 		var titleXPath = './/*[normalize-space(translate(text(),"ABCDEFGHJIKLMNOPQRSTUVWXYZ\u00a0","abcdefghjiklmnopqrstuvwxyz "))='
 			+ xpathTitle + ']';
 		Z.debug("Looking for title using: " + titleXPath);
@@ -684,7 +683,7 @@ function getAuthorFromByline(doc, newItem) {
 			Z.debug("Parent level " + parentLevel);
 			for(var i=0; i<bylines.length; i++) {
 				if(skipList.indexOf(i) !== -1) continue;
-				
+
 				if(parentLevel == 1) {
 					//skip bylines that contain bylines
 					var containsBylines = false;
@@ -697,7 +696,7 @@ function getAuthorFromByline(doc, newItem) {
 						continue;
 					}
 				}
-				
+
 				var bylineParent = bylines[i];
 				for(var j=0; j<parentLevel; j++) {
 					bylineParent = bylineParent.parentElement;
@@ -707,7 +706,7 @@ function getAuthorFromByline(doc, newItem) {
 					skipList.push(i);
 					continue;
 				}
-				
+
 				if(ZU.xpath(bylineParent, titleXPath).length) {
 					if(actualByline) {
 						//found more than one, bail
@@ -717,11 +716,11 @@ function getAuthorFromByline(doc, newItem) {
 					actualByline = bylines[i];
 				}
 			}
-			
+
 			parentLevel++;
 		}
 	}
-	
+
 	if(actualByline) {
 		var byline = ZU.trimInternal(actualByline.textContent);
 		Z.debug("Extracting author(s) from byline: " + byline);
@@ -744,7 +743,7 @@ function getAuthorFromByline(doc, newItem) {
 						//skip some odd splits and twitter handles
 						continue;
 					}
-					
+
 					if(authors[i].split(/\s/).length == 1) {
 						//probably corporate author
 						newItem.creators.push({
@@ -766,39 +765,57 @@ function getAuthorFromByline(doc, newItem) {
 
 function finalDataCleanup(doc, newItem) {
 	/**If we already have tags - run through them one by one,
-	 * split where ncessary and concat them.
-	 * This  will deal with multiple tags, some of them comma delimited,
+	 * split where necessary and concat them.
+	 * This will deal with multiple tags, some of them comma delimited,
 	 * some semicolon, some individual
 	 */
-	if (newItem.tags.length && Zotero.parentTranslator) {
-		var tags = [];
-		for (var i in newItem.tags) {
-			newItem.tags[i] = newItem.tags[i].trim();
-			if (newItem.tags[i].indexOf(';') == -1) {
-				//split by comma, since there are no semicolons
-				tags = tags.concat( newItem.tags[i].split(/\s*,\s*/) );
-			} else {
-				tags = tags.concat( newItem.tags[i].split(/\s*;\s*/) );
+	if (typeof newItem.tags == 'string') {
+		newItem.tags = [ newItem.tags ];
+	}
+	if (newItem.tags && newItem.tags.length && Zotero.parentTranslator) {
+		if (exports.splitTags) {
+			var tags = [];
+			for (var i in newItem.tags) {
+				newItem.tags[i] = newItem.tags[i].trim();
+				if (newItem.tags[i].indexOf(';') == -1) {
+					//split by comma, since there are no semicolons
+					tags = tags.concat( newItem.tags[i].split(/\s*,\s*/) );
+				} else {
+					tags = tags.concat( newItem.tags[i].split(/\s*;\s*/) );
+				}
 			}
+			for (var i=0; i<tags.length; i++) {
+				if (tags[i] === "") tags.splice(i, 1);
+			}
+			newItem.tags = tags;
 		}
-		for (var i=0; i<tags.length; i++) {
-			if (tags[i] === "") tags.splice(i, 1);
-		}
-		newItem.tags = tags;
 	} else {
 		// Unless called from another translator, don't include automatic tags,
 		// because most of the time they are not right
 		newItem.tags = [];
 	}
-	
+
 	//Cleanup DOI
 	if (newItem.DOI){
 		newItem.DOI =newItem.DOI.replace(/^doi:\s*/, "");
 	}
-	
+
+	// Add DOI to non-supported item types
+	if (newItem.DOI && !ZU.fieldIsValidForType("DOI", newItem.itemType)) {
+		if (newItem.extra){
+			newItem.extra += "\nDOI: " + newItem.DOI;
+		}
+		else {
+			newItem.extra = "DOI: " + newItem.DOI;
+		}
+	}
+
+
+
+
 	//remove itemID - comes from RDF translator, doesn't make any sense for online data
 	newItem.itemID = "";
-	
+
 	//worst case, if this is not called from another translator, use URL for title
 	if(!newItem.title && !Zotero.parentTranslator) newItem.title = newItem.url;
 }
@@ -808,6 +825,8 @@ var exports = {
 	"detectWeb": detectWeb,
 	"addCustomFields": addCustomFields,
 	"itemType": false,
+	//activate/deactivate splitting tags in final data cleanup when they contain commas or semicolons
+	"splitTags": true,
 	"fixSchemaURI": setPrefixRemap
 }
 
@@ -815,7 +834,7 @@ var exports = {
 var testCases = [
 	{
 		"type": "web",
-		"url": "http://www.ajol.info/index.php/thrb/article/view/63347",
+		"url": "https://www.ajol.info/index.php/thrb/article/view/63347",
 		"items": [
 			{
 				"itemType": "journalArticle",
@@ -866,7 +885,7 @@ var testCases = [
 				"libraryCatalog": "www.ajol.info",
 				"publicationTitle": "Tanzania Journal of Health Research",
 				"rights": "Copyright for articles published in this journal is retained by the journal.",
-				"url": "http://www.ajol.info/index.php/thrb/article/view/63347",
+				"url": "https://www.ajol.info/index.php/thrb/article/view/63347",
 				"volume": "13",
 				"attachments": [
 					{
@@ -899,7 +918,6 @@ var testCases = [
 				],
 				"date": "2011",
 				"abstractNote": "Why wait for federal action on incentives to reduce energy use and address Greenhouse Gas (GHG) reductions (e.g. CO2), when we can take personal actions right now in our private lives and in our communities? One such initiative by private citizens working with Portsmouth NH officials resulted in the installation of energy reducing lighting products on Court St. and the benefits to taxpayers are still coming after over 4 years of operation. This citizen initiative to save money and reduce CO2 emissions, while only one small effort, could easily be duplicated in many towns and cities. Replacing old lamps in just one street fixture with a more energy efficient (Non-LED) lamp has resulted after 4 years of operation ($\\sim $15,000 hr. life of product) in real electrical energy savings of $>$ {\\$}43. and CO2 emission reduction of $>$ 465 lbs. The return on investment (ROI) was less than 2 years. This is much better than any financial investment available today and far safer. Our street only had 30 such lamps installed; however, the rest of Portsmouth (population 22,000) has at least another 150 street lamp fixtures that are candidates for such an upgrade. The talk will also address other energy reduction measures that green the planet and also put more green in the pockets of citizens and municipalities.",
-				"accessDate": "CURRENT_TIMESTAMP",
 				"conferenceName": "Climate Change and the Future of Nuclear Power",
 				"libraryCatalog": "scholarworks.umass.edu",
 				"shortTitle": "Session F",
@@ -977,7 +995,7 @@ var testCases = [
 				"date": "2012",
 				"abstractNote": "This thesis examines decentralized meta-reasoning. For a single agent or multiple agents, it may not be enough for agents to compute correct decisions if they do not do so in a timely or resource efficient fashion. The utility of agent decisions typically increases with decision quality, but decreases with computation time. The reasoning about one's computation process is referred to as meta-reasoning. Aspects of meta-reasoning considered in this thesis include the reasoning about how to allocate computational resources, including when to stop one type of computation and begin another, and when to stop all computation and report an answer. Given a computational model, this translates into computing how to schedule the basic computations that solve a problem. This thesis constructs meta-reasoning strategies for the purposes of monitoring and control in multi-agent settings, specifically settings that can be modeled by the Decentralized Partially Observable Markov Decision Process (Dec-POMDP). It uses decision theory to optimize computation for efficiency in time and space in communicative and non-communicative decentralized settings. Whereas base-level reasoning describes the optimization of actual agent behaviors, the meta-reasoning strategies produced by this thesis dynamically optimize the computational resources which lead to the selection of base-level behaviors.",
 				"libraryCatalog": "scholarworks.umass.edu",
-				"university": "University of Massachusetts - Amherst",
+				"university": "University of Massachusetts Amherst",
 				"url": "http://scholarworks.umass.edu/open_access_dissertations/508",
 				"attachments": [
 					{
@@ -1048,7 +1066,7 @@ var testCases = [
 	},
 	{
 		"type": "web",
-		"url": "http://www.hindawi.com/journals/mpe/2013/868174/abs/",
+		"url": "https://www.hindawi.com/journals/mpe/2013/868174/abs/",
 		"items": [
 			{
 				"itemType": "journalArticle",
@@ -1077,7 +1095,7 @@ var testCases = [
 				"language": "en",
 				"libraryCatalog": "www.hindawi.com",
 				"publicationTitle": "Mathematical Problems in Engineering",
-				"url": "http://www.hindawi.com/journals/mpe/2013/868174/abs/",
+				"url": "https://www.hindawi.com/journals/mpe/2013/868174/abs/",
 				"volume": "2013",
 				"attachments": [
 					{
@@ -1274,7 +1292,7 @@ var testCases = [
 	},
 	{
 		"type": "web",
-		"url": "http://www.vox.com/2016/1/7/10726296/wheres-rey-star-wars-monopoly",
+		"url": "https://www.vox.com/2016/1/7/10726296/wheres-rey-star-wars-monopoly",
 		"items": [
 			{
 				"itemType": "webpage",
@@ -1288,7 +1306,7 @@ var testCases = [
 				],
 				"date": "2016-01-07T08:20:02-05:00",
 				"abstractNote": "Excluding female characters in merchandise is an ongoing pattern.",
-				"url": "http://www.vox.com/2016/1/7/10726296/wheres-rey-star-wars-monopoly",
+				"url": "https://www.vox.com/2016/1/7/10726296/wheres-rey-star-wars-monopoly",
 				"websiteTitle": "Vox",
 				"attachments": [
 					{
@@ -1394,7 +1412,7 @@ var testCases = [
 	},
 	{
 		"type": "web",
-		"url": "http://link.springer.com/article/10.1023/A:1021669308832",
+		"url": "https://link.springer.com/article/10.1023/A:1021669308832",
 		"items": [
 			{
 				"itemType": "journalArticle",
@@ -1416,7 +1434,7 @@ var testCases = [
 				"libraryCatalog": "link.springer.com",
 				"pages": "197-200",
 				"publicationTitle": "Foundations of Physics Letters",
-				"url": "http://link.springer.com/article/10.1023/A:1021669308832",
+				"url": "https://link.springer.com/article/10.1023/A:1021669308832",
 				"volume": "12",
 				"attachments": [
 					{
