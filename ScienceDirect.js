@@ -2,14 +2,14 @@
 	"translatorID": "b6d0a7a-d076-48ae-b2f0-b6de28b194e",
 	"label": "ScienceDirect",
 	"creator": "Michael Berkowitz and Aurimas Vinckevicius",
-	"target": "^https?://[^/]*science-?direct\\.com[^/]*/science(/article/|\\?.*\\b_ob=ArticleListURL|/(journal|bookseries|book|handbooks|referenceworks)/\\d)",
+	"target": "^https?://[^/]*science-?direct\\.com[^/]*/(science(/article/|\\?.*\\b_ob=ArticleListURL|/(journal|bookseries|book|handbooks|referenceworks)/\\d)|search\\?)",
 	"minVersion": "3.0",
 	"maxVersion": "",
 	"priority": 100,
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2017-09-04 21:31:05"
+	"lastUpdated": "2017-10-21 08:47:21"
 }
 
 // attr()/text() v2
@@ -35,7 +35,11 @@ function detectWeb(doc, url) {
 		} else {
 			return false;
 		}
-	} else if (url.indexOf("pdf") === -1) {
+	}
+	if (url.includes('/search?') && getArticleList(doc).length > 0) {
+		return "multiple";
+	}
+	if (url.indexOf("pdf") === -1) {
 		// Book sections have the ISBN in the URL
 		if (url.indexOf("/B978") !== -1) {
 			return "bookSection";
@@ -62,7 +66,7 @@ function getPDFLink(doc, onDone) {
 	// Some pages still have the PDF link available
 	var pdfURL = attr(doc, '#pdfLink', 'href');
 	if (pdfURL && pdfURL != '#') {
-		onDone(pdfURL);
+		parseIntermediatePDFPage(pdfURL, onDone);
 		return;
 	}
 	
@@ -394,6 +398,7 @@ function getArticleList(doc) {
 			|//table[@class="resultRow"]/tbody/tr/td[2]/h3/a\
 			|//td[@class="nonSerialResultsList"]/h3/a\
 			|//div[@id="bodyMainResults"]//li[contains(@class,"title")]//a\
+			|//h2/a[contains(@class, "result-list-title-link")]\
 		)\[not(contains(text(),"PDF (") or contains(text(), "Related Articles"))]');
 }
 
@@ -1041,6 +1046,11 @@ var testCases = [
 				"seeAlso": []
 			}
 		]
+	},
+	{
+		"type": "web",
+		"url": "http://www.sciencedirect.com/search?qs=zotero&show=25&sortBy=relevance",
+		"items": "multiple"
 	}
 ]
 /** END TEST CASES **/
