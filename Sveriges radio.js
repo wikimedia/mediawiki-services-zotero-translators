@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2018-02-28 13:17:24"
+	"lastUpdated": "2018-04-03 13:40:21"
 }
 
 /*
@@ -38,6 +38,11 @@
 
 // attr()/text() v2
 function attr(docOrElem,selector,attr,index){var elem=index?docOrElem.querySelectorAll(selector).item(index):docOrElem.querySelector(selector);return elem?elem.getAttribute(attr):null;}function text(docOrElem,selector,index){var elem=index?docOrElem.querySelectorAll(selector).item(index):docOrElem.querySelector(selector);return elem?elem.textContent:null;}
+
+
+// Polyfill for String.includes
+// Source: https://developer.mozilla.org/it/docs/Web/JavaScript/Reference/Global_Objects/String/includes#Polyfill
+if(!String.prototype.includes){String.prototype.includes=function(search,start){'use strict';if(typeof start!=='number'){start=0;}if(start+search.length>this.length){return false;}else{return this.indexOf(search,start)!==-1;}};}
 
 
 function detectWeb(doc, url) {
